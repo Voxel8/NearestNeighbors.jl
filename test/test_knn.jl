@@ -3,8 +3,8 @@
 import Distances.evaluate
 
 @testset "knn" begin
-    @testloop "metric" for metric in metrics
-        @testloop "tree type" for TreeType in trees_with_brute
+    @testset "metric" for metric in metrics
+        @testset "tree type" for TreeType in trees_with_brute
             # 8 node rectangle
             data = [0.0 0.0 0.0 0.5 0.5 1.0 1.0 1.0;
                     0.0 0.5 1.0 0.0 1.0 0.0 0.5 1.0]
@@ -25,5 +25,19 @@ import Distances.evaluate
             @test_throws ArgumentError knn(tree, [0.1], 10) # n_dim != trees dim
 
         end
+    end
+end
+
+@testset "knn skip" begin
+    @testset "tree type" for TreeType in trees_with_brute
+        data = rand(2, 1000)
+        tree = TreeType(data)
+        
+        idxs, dists = knn(tree, data[:, 10], 2, true)
+        first_idx = idxs[1]
+        second_idx = idxs[2]
+        
+        idxs, dists = knn(tree, data[:, 10], 2, true, i -> i == first_idx)
+        @test idxs[1] == second_idx
     end
 end
